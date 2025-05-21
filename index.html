@@ -1,36 +1,22 @@
 <!DOCTYPE html>
-<html lang="en">
 <html>
 <head>
   <meta charset="UTF-8" />
-  <title>ERC20 Balance Checker</title>
+  <title>ERC20 Token balanceOf</title>
   <script src="https://cdn.jsdelivr.net/npm/ethers@6.10.0/dist/ethers.umd.min.js"></script>
-  <meta charset="UTF-8">
-  <title>Check ERC20 Balance</title>
-  <script src="https://cdn.jsdelivr.net/npm/ethers@6.6.2/dist/ethers.umd.min.js"></script>
 </head>
 <body>
-  <h1>ERC20 Token Balance Checker</h1>
-  <button id="checkBalance">Check My Balance</button>
-  <p id="output"></p>
-  <h1>ERC20 Balance Checker</h1>
+  <h1>Check ERC20 Token Balance</h1>
   <button id="checkBalance">Check My Token Balance</button>
-  <p id="output">Click the button to view your balance.</p>
+  <p id="output">Click the button to see your token balance.</p>
 
-<script>
-    const tokenAddress = "0xa25231ad60b053609c46f883f7fba89301fa74fe863b14e6ee6bc58f5906aa18"; 
-    const tokenABI = [
-      "function balanceOf(address account) view returns (uint256)",
-      "function decimals() view returns (uint8)",
-      "function symbol() view returns (string)"
-    const contractAddress = "0xa25231ad60b053609c46f883f7fba89301fa74fe863b14e6ee6bc58f5906aa18";
+  <script>
+    const contractAddress = "0xa25231ad60b053609c46f883f7fba89301fa74fe";
+
     const erc20ABI = [
-      "function balanceOf(address account) view returns (uint256)"
-];
+      "function balanceOf(address account) public view returns (uint256)"
+    ];
 
-    document.getElementById("checkBalance").onclick = async () => {
-      if (typeof window.ethereum === "undefined") {
-        alert("Please install MetaMask to use this app.");
     const output = document.getElementById("output");
 
     function getMetaMaskProvider() {
@@ -45,50 +31,35 @@
 
     document.getElementById("checkBalance").addEventListener("click", async () => {
       const metamask = getMetaMaskProvider();
-
       if (!metamask) {
-        output.innerText = "MetaMask not found. Disable Phantom or use a MetaMask-only browser profile.";
-return;
-}
+        output.innerText = "MetaMask not found. Please install MetaMask.";
+        return;
+      }
 
-try {
-        const provider = new ethers.BrowserProvider(window.ethereum);
-        const network = await provider.getNetwork();
-
-        if (network.chainId !== 17000n) {
-          alert("Please switch to the Holesky Testnet in MetaMask.");
-          return;
-        }
-        await metamask.request({ method: "eth_requestAccounts" });
+      try {
+        const accounts = await metamask.request({ method: "eth_requestAccounts" });
+        const account = accounts[0].toLowerCase();
 
         const provider = new ethers.BrowserProvider(metamask);
-const signer = await provider.getSigner();
-const userAddress = await signer.getAddress();
 
-        const tokenContract = new ethers.Contract(tokenAddress, tokenABI, provider);
+        const network = await provider.getNetwork();
+        if (network.chainId !== 17000n) {
+          output.innerText = "Please switch to the Holesky Testnet in MetaMask.";
+          return;
+        }
 
-        const [balanceRaw, decimals, symbol] = await Promise.all([
-          tokenContract.balanceOf(userAddress),
-          tokenContract.decimals(),
-          tokenContract.symbol()
-        ]);
+        const token = new ethers.Contract(contractAddress, erc20ABI, provider);
 
-        const balance = ethers.formatUnits(balanceRaw, decimals);
-        const contract = new ethers.Contract(contractAddress, erc20ABI, provider);
-        const rawBalance = await contract.balanceOf(userAddress);
-        const balance = ethers.formatUnits(rawBalance, 18); // 18 decimals assumed
+        const balance = await token.balanceOf(account);
+        // balance is BigNumber, convert to decimal with 18 decimals
+        const formattedBalance = ethers.formatUnits(balance, 18);
 
-        document.getElementById("output").innerText = `Your balance: ${balance} ${symbol}`;
-      } catch (error) {
-        console.error(error);
-        alert("Error occurred. See console for details.");
-        output.innerText = `Your Token Balance: ${balance}`;
+        output.innerText = `Your token balance: ${formattedBalance}`;
       } catch (err) {
         console.error(err);
-        output.innerText = "Error: " + err.message;
-}
-    };
+        output.innerText = "❌ Error: " + err.message;
+      }
     });
-</script>
+  </script>
 </body>
 </html>
