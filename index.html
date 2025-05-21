@@ -51,7 +51,6 @@
         const token = new ethers.Contract(contractAddress, erc20ABI, provider);
 
         const balance = await token.balanceOf(account);
-        // balance is BigNumber, convert to decimal with 18 decimals
         const formattedBalance = ethers.formatUnits(balance, 18);
 
         output.innerText = `Your token balance: ${formattedBalance}`;
