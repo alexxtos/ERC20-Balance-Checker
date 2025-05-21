@@ -2,55 +2,54 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>My ERC20 Balance Checker</title>
+  <title>ERC20 Balance Checker</title>
   <script src="https://cdn.jsdelivr.net/npm/ethers@6.10.0/dist/ethers.umd.min.js"></script>
 </head>
 <body>
-  <h2>Check My Token Balance (WhitelistToken)</h2>
-  <button id="checkBalanceBtn">Check My Balance</button>
-  <p id="balanceOutput">Your balance will appear here.</p>
+  <h1>ERC20 Token Balance Checker</h1>
+  <button id="checkBalance">Check My Balance</button>
+  <p id="output"></p>
 
   <script>
-    const tokenAddress = "0xa25231ad60b053609c46f883f7fba89301fa74fe863b14e6ee6bc58f5906aa18";
-    const erc20Abi = 
-    [
+    const tokenAddress = "0xa25231ad60b053609c46f883f7fba89301fa74fe863b14e6ee6bc58f5906aa18"; // dein WhitelistToken
+    const tokenABI = [
       "function balanceOf(address account) view returns (uint256)",
-      "function decimals() view returns (uint8)"
+      "function decimals() view returns (uint8)",
+      "function symbol() view returns (string)"
     ];
 
-    document.getElementById("checkBalanceBtn").onclick = async () => 
-      {
-      if (typeof window.ethereum === "undefined") 
-      {
+    document.getElementById("checkBalance").onclick = async () => {
+      if (typeof window.ethereum === "undefined") {
         alert("Please install MetaMask to use this app.");
         return;
       }
 
-      try 
-      {
+      try {
         const provider = new ethers.BrowserProvider(window.ethereum);
-        const signer = await provider.getSigner();
-        const userAddress = await signer.getAddress();
-
         const network = await provider.getNetwork();
-        if (network.chainId !== 17000n) 
-        {
+
+        if (network.chainId !== 17000n) {
           alert("Please switch to the Holesky Testnet in MetaMask.");
           return;
         }
 
-        const tokenContract = new ethers.Contract(tokenAddress, erc20Abi, provider);
-        const balance = await tokenContract.balanceOf(userAddress);
-        const decimals = await tokenContract.decimals();
-        const formattedBalance = ethers.formatUnits(balance, decimals);
+        const signer = await provider.getSigner();
+        const userAddress = await signer.getAddress();
 
-        document.getElementById("balanceOutput").innerText =
-          `Your balance: ${formattedBalance} WLT`;
-      } 
-      catch (error) 
-      {
+        const tokenContract = new ethers.Contract(tokenAddress, tokenABI, provider);
+
+        const [balanceRaw, decimals, symbol] = await Promise.all([
+          tokenContract.balanceOf(userAddress),
+          tokenContract.decimals(),
+          tokenContract.symbol()
+        ]);
+
+        const balance = ethers.formatUnits(balanceRaw, decimals);
+
+        document.getElementById("output").innerText = `Your balance: ${balance} ${symbol}`;
+      } catch (error) {
         console.error(error);
-        alert("Error fetching balance. See console for details.");
+        alert("Error occurred. See console for details.");
       }
     };
   </script>
