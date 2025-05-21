@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <title>Check ERC20 Balance</title>
-  <script src="https://cdn.jsdelivr.net/npm/ethers@6.6.2/dist/ethers.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/ethers@6.10.0/dist/ethers.umd.min.js"></script>
 </head>
 <body>
   <h1>ERC20 Balance Checker</h1>
@@ -11,7 +11,8 @@
   <p id="output">Click the button to view your balance.</p>
 
   <script>
-    const contractAddress = "0xa25231ad60b053609c46f883f7fba89301fa74fe863b14e6ee6bc58f5906aa18";
+    const contractAddress = "0xa25231Ad60b053609C46f883F7FbA89301Fa74fE";
+
     const erc20ABI = [
       "function balanceOf(address account) view returns (uint256)"
     ];
@@ -32,20 +33,29 @@
       const metamask = getMetaMaskProvider();
 
       if (!metamask) {
-        output.innerText = "MetaMask not found. Disable Phantom or use a MetaMask-only browser profile.";
+        output.innerText = "MetaMask not found. Please use a MetaMask-enabled browser.";
         return;
       }
 
       try {
+        // MetaMask Account Zugriff
         await metamask.request({ method: "eth_requestAccounts" });
 
         const provider = new ethers.BrowserProvider(metamask);
+
+        const network = await provider.getNetwork();
+        if (network.chainId !== 17000n) {
+          output.innerText = "Please switch MetaMask to the Holesky Testnet.";
+          return;
+        }
+
         const signer = await provider.getSigner();
         const userAddress = await signer.getAddress();
 
         const contract = new ethers.Contract(contractAddress, erc20ABI, provider);
         const rawBalance = await contract.balanceOf(userAddress);
-        const balance = ethers.formatUnits(rawBalance, 18); // 18 decimals assumed
+
+        const balance = ethers.formatUnits(rawBalance, 18); // 18 Decimals → Standard
 
         output.innerText = `Your Token Balance: ${balance}`;
       } catch (err) {
