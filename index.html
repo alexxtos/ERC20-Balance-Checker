@@ -11,8 +11,9 @@
   <p id="output">Click the button to see your token balance.</p>
 
   <script>
-    const contractAddress = "0xa25231ad60b053609c46f883f7fba89301fa74fe";
+    const { ethers } = window.ethers;  
 
+    const contractAddress = "0xa25231ad60b053609c46f883f7fba89301fa74fe";
     const erc20ABI = [
       "function balanceOf(address account) public view returns (uint256)"
     ];
@@ -48,7 +49,6 @@
         }
 
         const token = new ethers.Contract(contractAddress, erc20ABI, provider);
-
         const balance = await token.balanceOf(account);
         const formattedBalance = ethers.formatUnits(balance, 18);
 
