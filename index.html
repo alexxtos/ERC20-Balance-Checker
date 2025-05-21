@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <title>ERC20 Token balanceOf</title>
-  <script src="https://cdn.jsdelivr.net/npm/ethers@6.10.0/dist/ethers.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/ethers @6.7.1/dist/ethers.umd.min.js"></script>
 </head>
 <body>
   <h1>Check ERC20 Token Balance</h1>
@@ -37,23 +37,26 @@
       }
 
       try {
+        // MetaMask Accounts laden
         const accounts = await metamask.request({ method: "eth_requestAccounts" });
-        const account = accounts[0].toLowerCase();
+        const account = accounts[0];
 
+        // Provider & Netzwerk prüfen
         const provider = new ethers.BrowserProvider(metamask);
-
         const network = await provider.getNetwork();
         if (network.chainId !== 17000n) {
-          output.innerText = "Please switch to the Holesky Testnet in MetaMask.";
+          output.innerText = "Please switch MetaMask to Holesky Testnet.";
           return;
         }
 
+        // Contract erstellen
         const token = new ethers.Contract(contractAddress, erc20ABI, provider);
 
+        // Balance abfragen
         const balance = await token.balanceOf(account);
         const formattedBalance = ethers.formatUnits(balance, 18);
 
-        output.innerText = `Your token balance: ${formattedBalance}`;
+        output.innerText = `Your token balance: ${formattedBalance} WTK`;
       } catch (err) {
         console.error(err);
         output.innerText = "❌ Error: " + err.message;
